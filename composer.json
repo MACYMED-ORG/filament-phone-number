@@ -1,0 +1,41 @@
+{
+    "name": "macymed-org/filament-phone-number",
+    "description": "Phone number input and column for Filament PHP",
+    "keywords": [
+        "filament",
+        "laravel",
+        "phone",
+        "international"
+    ],
+    "homepage": "https://github.com/MACYMED-ORG/filament-phone-number",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "MACYMED-ORG",
+            "email": "contact@macymed.org",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": "^8.1",
+        "filament/filament": "^3.0",
+        "brick/phonenumber": "^0.6.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Macymed\\FilamentPhoneNumber\\": "src"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Macymed\\FilamentPhoneNumber\\FilamentPhoneNumberServiceProvider"
+            ]
+        }
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}
