@@ -20,7 +20,7 @@
             isOpen: false,
             search: '',
             filteredCountries: [],
-            selectedFlag: @js(\App\Helpers\CountryHelper::getCountryFlag($getDefaultCountry())),
+            selectedFlag: @js(\Macymed\FilamentPhoneNumber\Helpers\CountryHelper::getCountryFlag($getDefaultCountry())),
             
             init() {
                 // Surveiller les changements de pays pour mettre à jour le masque
@@ -197,7 +197,7 @@
                             @if ($shouldShowFlags())
                                 <!-- On passe le drapeau dans le modèle Alpine countries -->
                                 @php
-                                    $countryData['flag'] = \App\Helpers\CountryHelper::getCountryFlag($code);
+                                    $countryData['flag'] = \Macymed\FilamentPhoneNumber\Helpers\CountryHelper::getCountryFlag($code);
                                 @endphp
                                 <span class="mr-2">{!! $countryData['flag'] !!}</span>
                             @endif

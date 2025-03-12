@@ -2,9 +2,10 @@
 
 namespace Macymed\FilamentPhoneNumber\Components;
 
-use App\Helpers\PhoneNumberHelper;
+
 use Filament\Tables\Columns\TextColumn;
-use App\Helpers\CountryHelper;
+use Macymed\FilamentPhoneNumber\Helpers\CountryHelper;
+use Macymed\FilamentPhoneNumber\Helpers\PhoneNumberHelper;
 
 
 class PhoneNumberColumn extends TextColumn
