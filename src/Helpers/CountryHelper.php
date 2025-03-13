@@ -288,14 +288,23 @@ class CountryHelper
      */
     public static function getCountryFlag(string $countryCode): string
     {
+        // Normaliser le code en minuscule pour rechercher le SVG
+        $code = strtolower($countryCode);
+        // Chemin absolu vers le dossier flags relatif à ce fichier (ajustez si nécessaire)
+        $svgPath = __DIR__ . '/../Resources/images/flags/' . $code . '.svg';
+        
+        if (file_exists($svgPath)) {
+            // Retourne le contenu SVG (HTML)
+            return file_get_contents($svgPath);
+        }
+        
+        // Fallback : Retourne l'emoji du drapeau
         $countryCode = strtoupper($countryCode);
-        // Convert each letter to the corresponding regional indicator symbol emoji
-        $flag = implode('', array_map(function ($char) {
+        return implode('', array_map(function ($char) {
             return mb_chr(ord($char) + 127397);
         }, str_split($countryCode)));
-
-        return $flag;
     }
+    
 
     /**
      * Get country name in local language

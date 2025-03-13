@@ -30,7 +30,7 @@ use Macymed\FilamentPhoneNumber\Helpers\PhoneNumberHelper;
 
 class PhoneNumberColumn extends TextColumn
 {
-    protected string $view = 'filament-phone-number::columns.phone-number-column';
+    protected string $view = 'filament-macymed-phone-number::columns.phone-number-column';
 
     protected bool $showFlags = true;
     protected string $format = 'NATIONAL';
