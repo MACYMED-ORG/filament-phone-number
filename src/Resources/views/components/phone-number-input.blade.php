@@ -9,7 +9,8 @@
     :required="$isRequired()"
     :state-path="$getStatePath()"
 >
-    <div x-data="{
+    <div 
+        x-data="{
             country: @js($getDefaultCountry()),
             phoneNumber: @js($getFormattedNumber()),
             state: $wire.entangle('{{ $getStatePath() }}'),
@@ -19,55 +20,20 @@
             countries: {{ json_encode($getCountries()) }},
             isOpen: false,
             search: '',
-            filteredCountries: [],
-            // Valeur initiale générée côté serveur pour le drapeau (emoji)
-            selectedFlag: @js(\Macymed\FilamentPhoneNumber\Helpers\CountryHelper::getCountryFlag($getDefaultCountry())),
+            filteredCountries: Object.entries({{ json_encode($getCountries()) }})
+                .map(([code, data]) => ({ code, name: data.name, prefix: data.prefix })),
+            // Valeur initiale pour le drapeau, générée côté serveur via le helper
+            selectedFlag: @js(\Macymed\FilamentPhoneNumber\Helpers\CountryHelper::getCountryFlag($getDefaultCountry()))
             
-            init() {
-                // Vérifier le support des emoji, et utiliser le fallback si besoin
-                if (!this.emojiSupported()) {
-                    this.selectedFlag = this.getFallbackFlag(this.selectedCountry);
-                }
-                
-                // Surveiller les changements de pays pour mettre à jour le masque et le drapeau
-                this.$watch('country', () => {
-                    this.updateMaskedInput();
-                    // Si l'emoji est supporté, utiliser le drapeau généré côté serveur sinon le fallback
-                    this.selectedFlag = this.emojiSupported() 
-                        ? this.getCountryFlag(this.country)
-                        : this.getFallbackFlag(this.country);
-                });
-                
-                // Initialiser les pays filtrés
-                this.filteredCountries = Object.entries(this.countries).map(([code, data]) => ({
-                    code,
-                    name: data.name,
-                    prefix: data.prefix
-                }));
-                
-                // Surveiller les changements de recherche
-                this.$watch('search', () => {
-                    this.filterCountries();
-                });
-                
-                // Fermer le dropdown si on clique en dehors
-                document.addEventListener('click', (e) => {
-                    if (!this.$el.contains(e.target)) {
-                        this.isOpen = false;
-                    }
-                });
-            },
-            
+            ,
             getCountryFlag(code) {
-                // Retourne le drapeau (emoji) stocké côté serveur, si disponible
+                // Tente d'utiliser le flag présent dans la donnée country (qui devrait être défini côté serveur)
                 return this.countries[code]?.flag || '';
             },
-            
-            // Retourne le fallback : une image SVG correspondant au code pays
+            // Fallback au cas où, en utilisant l'image SVG depuis les assets publiés
             getFallbackFlag(code) {
-                return `<img src='/images/flags/${code.toLowerCase()}.svg' alt='Drapeau ${code}' class='w-6 h-6'>`;
+                return `<img src='{{ asset("vendor/filament-macymed-phone-number/images/flags") }}/${code.toLowerCase()}.svg' alt='Drapeau ${code}' class='w-6 h-6'>`;
             },
-            
             emojiSupported() {
                 try {
                     const canvas = document.createElement('canvas');
@@ -75,98 +41,59 @@
                     const ctx = canvas.getContext('2d');
                     ctx.textBaseline = 'top';
                     ctx.font = '16px Arial';
-                    // Dessiner l'emoji dans le canvas
                     ctx.fillText(this.getCountryFlag(this.country), 0, 0);
                     const data = canvas.toDataURL();
-                    // Vérifier si le résultat ressemble à une image valide
                     return data.indexOf('data:image/png') === 0;
                 } catch (e) {
                     return false;
                 }
             },
-            
             filterCountries() {
-                const searchTerm = this.search.toLowerCase();
+                const term = this.search.toLowerCase();
                 this.filteredCountries = Object.entries(this.countries)
                     .filter(([code, data]) => {
-                        return data.name.toLowerCase().includes(searchTerm) || 
-                               code.toLowerCase().includes(searchTerm) ||
-                               data.prefix.includes(searchTerm);
+                        return data.name.toLowerCase().includes(term) ||
+                               code.toLowerCase().includes(term) ||
+                               data.prefix.includes(term);
                     })
-                    .map(([code, data]) => ({
-                        code,
-                        name: data.name,
-                        prefix: data.prefix
-                    }));
+                    .map(([code, data]) => ({ code, name: data.name, prefix: data.prefix }));
             },
-            
             selectCountry(code) {
                 this.country = code;
                 this.isOpen = false;
                 this.search = '';
                 this.updateMaskedInput();
-                // Mettre à jour le drapeau selon le support de l'emoji
                 this.selectedFlag = this.emojiSupported() 
                     ? this.getCountryFlag(code)
                     : this.getFallbackFlag(code);
             },
-            
             updateMaskedInput() {
-                // Extraire les chiffres de l'entrée actuelle
                 const digits = this.phoneNumber.replace(/\D/g, '');
-                // Appliquer le masque correspondant au pays
                 const mask = this.masks[this.country] || '';
                 if (!mask) {
                     this.phoneNumber = digits;
                     return;
                 }
-                
                 let formatted = '';
-                let maskIndex = 0;
-                let digitIndex = 0;
-                
+                let maskIndex = 0, digitIndex = 0;
                 while (maskIndex < mask.length && digitIndex < digits.length) {
                     if (mask[maskIndex] === '#') {
-                        formatted += digits[digitIndex];
-                        digitIndex++;
+                        formatted += digits[digitIndex++];
                     } else {
                         formatted += mask[maskIndex];
                     }
                     maskIndex++;
                 }
-                
                 this.phoneNumber = formatted;
                 this.updateState();
             },
-            
             updateState() {
                 const prefix = this.countries[this.country]?.prefix || '';
-                // Nettoyer le numéro pour le stockage
                 const cleanNumber = this.phoneNumber.replace(/\D/g, '');
                 this.state = cleanNumber ? prefix + cleanNumber : '';
             },
-            
             formatInput(event) {
-                const mask = this.masks[this.country] || '';
-                if (!mask) return;
-                const input = event.target;
-                const value = input.value.replace(/\D/g, '');
-                let formatted = '';
-                let maskIndex = 0;
-                let valueIndex = 0;
-                
-                while (maskIndex < mask.length && valueIndex < value.length) {
-                    if (mask[maskIndex] === '#') {
-                        formatted += value[valueIndex];
-                        valueIndex++;
-                    } else {
-                        formatted += mask[maskIndex];
-                    }
-                    maskIndex++;
-                }
-                
-                this.phoneNumber = formatted;
-                this.updateState();
+                this.updateMaskedInput();
             }
         }"
         class="flex space-x-2"
@@ -179,11 +106,10 @@
                 :class="{ 'ring-1 ring-primary-500 border-primary-500': isOpen }"
             >
                 <span>
-                    @if ($shouldShowFlags())
-                        <!-- Utilisation de la variable Alpine pour afficher le drapeau (emoji ou fallback) -->
+                    @if($shouldShowFlags())
                         <span class="mr-2" x-html="selectedFlag"></span>
                     @endif
-                    <span x-text="countries[country] ? ' (' + countries[country].prefix + ')' : ''"></span>
+                    <span x-text="countries[country] ? (' (' + countries[country].prefix + ')') : ''"></span>
                 </span>
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" :class="{ 'transform rotate-180': isOpen }" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
@@ -211,23 +137,18 @@
                 
                 <!-- Countries List -->
                 <div>
-                    @foreach ($getCountries() as $code => $countryData)
+                    <template x-for="countryItem in filteredCountries" :key="countryItem.code">
                         <div 
-                            x-show="filteredCountries.some(c => c.code === '{{ $code }}')"
-                            @click="selectCountry('{{ $code }}')" 
+                            @click="selectCountry(countryItem.code)" 
                             class="px-3 py-2 hover:bg-gray-100 cursor-pointer flex items-center"
                         >
-                            @if ($shouldShowFlags())
-                                @php
-                                    $countryData['flag'] = \Macymed\FilamentPhoneNumber\Helpers\CountryHelper::getCountryFlag($code);
-                                @endphp
-                                <span class="mr-2">{!! $countryData['flag'] !!}</span>
-                            @endif
-                            <span>{{ $countryData['name'] }} ({{ $countryData['prefix'] }})</span>
+                            <template x-if="shouldShowFlags()">
+                                <span class="mr-2" x-html="getFallbackFlag(countryItem.code)"></span>
+                            </template>
+                            <span x-text="countryItem.name + ' (' + countryItem.prefix + ')'"></span>
                         </div>
-                    @endforeach
+                    </template>
                     
-                    <!-- No results message -->
                     <div x-show="filteredCountries.length === 0" class="px-3 py-2 text-gray-500 italic">
                         Aucun pays ne correspond à votre recherche
                     </div>
@@ -244,9 +165,9 @@
                 :placeholder="masks[country] || ''"
                 type="tel"
                 id="{{ $getId() }}"
-                {!! ($autocomplete = $getAutocomplete()) ? "autocomplete=\"{$autocomplete}\"" : null !!}
-                {!! $isDisabled() ? 'disabled' : null !!}
-                {!! $isRequired() ? 'required' : null !!}
+                {!! ($autocomplete = $getAutocomplete()) ? "autocomplete=\"{$autocomplete}\"" : '' !!}
+                {!! $isDisabled() ? 'disabled' : '' !!}
+                {!! $isRequired() ? 'required' : '' !!}
                 {{ $getExtraInputAttributeBag()->class([
                     'block w-full h-10 transition duration-75 rounded-lg shadow-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500',
                     'border-gray-300' => ! $errors->has($getStatePath()),
