@@ -36,7 +36,7 @@ composer-install:
 # Exécute Autoindex en utilisant le script Bash dans le répertoire scripts
 autoindex: init
 	@echo "Exécution de autoindex..."
-	bash ./scripts/autoindex.sh src assets tests
+	bash ./scripts/autoindex.sh src assets
 
 # Exécute PHP CS Fixer pour corriger le code
 cs-fixer: init
@@ -64,13 +64,12 @@ phpmd: init
 	@echo "Exécution de PHPMD..."
 	vendor/bin/phpmd . text cleancode,codesize,controversial,design,naming,unusedcode
 
-# Applique le header stamp en utilisant le script Bash dans le répertoire scripts
-# Ici, on précise les répertoires (src et assets) et le fichier stamp via l'argument stamp=
+# Applique le header stamp en utilisant le script PHP dans le répertoire scripts
+# On précise ici les répertoires (src et assets) et le fichier stamp via l'argument stamp=
 header-stamp: init
 	@echo "Exécution du header stamp..."
-	bash ./scripts/add_headers.sh src assets tests stamp=assets/afl.txt
+	php ./scripts/add_headers.php src assets stamp=assets/afl.txt
 
 # Tâche globale qui exécute toutes les étapes dans l'ordre
-# remove-vendor 
-all: composer-install autoindex fix-blank-lines cs-fixer rector phpstan header-stamp
+all: remove-vendor composer-install autoindex fix-blank-lines cs-fixer rector phpstan header-stamp
 	@echo "Toutes les tâches ont été exécutées."

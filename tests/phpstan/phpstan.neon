@@ -4,5 +4,6 @@ parameters:
     - ../../src/
   excludePaths:
     - ../../vendor/
+    - ../../scripts/
   reportUnmatchedIgnoredErrors: false
   level: max
