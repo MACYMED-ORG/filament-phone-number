@@ -20,14 +20,22 @@
             isOpen: false,
             search: '',
             filteredCountries: [],
+            // Valeur initiale générée côté serveur pour le drapeau (emoji)
             selectedFlag: @js(\Macymed\FilamentPhoneNumber\Helpers\CountryHelper::getCountryFlag($getDefaultCountry())),
             
             init() {
-                // Surveiller les changements de pays pour mettre à jour le masque
+                // Vérifier le support des emoji, et utiliser le fallback si besoin
+                if (!this.emojiSupported()) {
+                    this.selectedFlag = this.getFallbackFlag(this.selectedCountry);
+                }
+                
+                // Surveiller les changements de pays pour mettre à jour le masque et le drapeau
                 this.$watch('country', () => {
                     this.updateMaskedInput();
-                    // Mettre à jour le drapeau quand le pays change
-                    this.selectedFlag = this.getCountryFlag(this.country);
+                    // Si l'emoji est supporté, utiliser le drapeau généré côté serveur sinon le fallback
+                    this.selectedFlag = this.emojiSupported() 
+                        ? this.getCountryFlag(this.country)
+                        : this.getFallbackFlag(this.country);
                 });
                 
                 // Initialiser les pays filtrés
@@ -51,9 +59,30 @@
             },
             
             getCountryFlag(code) {
-                // Cette fonction est simulée ici - le serveur génère réellement les drapeaux
-                // Nous devons stocker la valeur HTML du drapeau
+                // Retourne le drapeau (emoji) stocké côté serveur, si disponible
                 return this.countries[code]?.flag || '';
+            },
+            
+            // Retourne le fallback : une image SVG correspondant au code pays
+            getFallbackFlag(code) {
+                return `<img src='/images/flags/${code.toLowerCase()}.svg' alt='Drapeau ${code}' class='w-6 h-6'>`;
+            },
+            
+            emojiSupported() {
+                try {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = canvas.height = 16;
+                    const ctx = canvas.getContext('2d');
+                    ctx.textBaseline = 'top';
+                    ctx.font = '16px Arial';
+                    // Dessiner l'emoji dans le canvas
+                    ctx.fillText(this.getCountryFlag(this.country), 0, 0);
+                    const data = canvas.toDataURL();
+                    // Vérifier si le résultat ressemble à une image valide
+                    return data.indexOf('data:image/png') === 0;
+                } catch (e) {
+                    return false;
+                }
             },
             
             filterCountries() {
@@ -76,15 +105,16 @@
                 this.isOpen = false;
                 this.search = '';
                 this.updateMaskedInput();
-                // Mettre à jour le drapeau lors de la sélection
-                this.selectedFlag = this.getCountryFlag(code);
+                // Mettre à jour le drapeau selon le support de l'emoji
+                this.selectedFlag = this.emojiSupported() 
+                    ? this.getCountryFlag(code)
+                    : this.getFallbackFlag(code);
             },
             
             updateMaskedInput() {
                 // Extraire les chiffres de l'entrée actuelle
                 const digits = this.phoneNumber.replace(/\D/g, '');
-                
-                // Appliquer le nouveau masque
+                // Appliquer le masque correspondant au pays
                 const mask = this.masks[this.country] || '';
                 if (!mask) {
                     this.phoneNumber = digits;
@@ -111,20 +141,14 @@
             
             updateState() {
                 const prefix = this.countries[this.country]?.prefix || '';
-                // Nettoyer le numéro des caractères non numériques pour le stockage
+                // Nettoyer le numéro pour le stockage
                 const cleanNumber = this.phoneNumber.replace(/\D/g, '');
-                
-                if (cleanNumber) {
-                    this.state = prefix + cleanNumber;
-                } else {
-                    this.state = '';
-                }
+                this.state = cleanNumber ? prefix + cleanNumber : '';
             },
             
             formatInput(event) {
                 const mask = this.masks[this.country] || '';
                 if (!mask) return;
-                
                 const input = event.target;
                 const value = input.value.replace(/\D/g, '');
                 let formatted = '';
@@ -141,7 +165,6 @@
                     maskIndex++;
                 }
                 
-                // Mettre à jour avec la valeur formatée
                 this.phoneNumber = formatted;
                 this.updateState();
             }
@@ -157,10 +180,10 @@
             >
                 <span>
                     @if ($shouldShowFlags())
-                        <!-- Ici, on utilise la variable Alpine pour le drapeau -->
+                        <!-- Utilisation de la variable Alpine pour afficher le drapeau (emoji ou fallback) -->
                         <span class="mr-2" x-html="selectedFlag"></span>
                     @endif
-                    <span x-text="countries[country] ?  ' (' + countries[country].prefix + ')' : ''"></span>
+                    <span x-text="countries[country] ? ' (' + countries[country].prefix + ')' : ''"></span>
                 </span>
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" :class="{ 'transform rotate-180': isOpen }" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
@@ -195,7 +218,6 @@
                             class="px-3 py-2 hover:bg-gray-100 cursor-pointer flex items-center"
                         >
                             @if ($shouldShowFlags())
-                                <!-- On passe le drapeau dans le modèle Alpine countries -->
                                 @php
                                     $countryData['flag'] = \Macymed\FilamentPhoneNumber\Helpers\CountryHelper::getCountryFlag($code);
                                 @endphp
@@ -214,7 +236,7 @@
         </div>
 
         <!-- Phone Number Input -->
-        <div class="flex-grow ">
+        <div class="flex-grow">
             <input
                 x-model="phoneNumber"
                 @input="formatInput($event)"
