@@ -8,7 +8,7 @@
         "international"
     ],
     "homepage": "https://github.com/MACYMED-ORG/filament-phone-number",
-    "license": "MIT",
+    "license": "OSL",
     "authors": [
         {
             "name": "MACYMED-ORG",
@@ -37,5 +37,10 @@
         "sort-packages": true
     },
     "minimum-stability": "dev",
-    "prefer-stable": true
+    "prefer-stable": true,
+    "require-dev": {
+        "phpmd/phpmd": "^2.15",
+        "phpstan/phpstan": "^2.1",
+        "rector/rector": "^2.0"
+    }
 }

@@ -1,0 +1,8 @@
+parameters:
+  paths:
+    - ./
+    - ../../src/
+  excludePaths:
+    - ../../vendor/
+  reportUnmatchedIgnoredErrors: false
+  level: max

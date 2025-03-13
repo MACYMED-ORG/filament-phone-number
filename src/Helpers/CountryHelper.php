@@ -1,4 +1,48 @@
 <?php
+/**
+ *  Copyright since 2007 Macymed and Contributors
+ *
+ *  NOTICE OF LICENSE
+ *
+ *  This source file is subject to the Open Software License (OSL 3.0)
+ *  that is bundled with this package in the file LICENSE.md.
+ *  It is also available through the world-wide-web at this URL:
+ *  https://opensource.org/licenses/OSL-3.0
+ *  If you did not receive a copy of the license and are unable to
+ *  obtain it through the world-wide-web, please send an email
+ *  to info@macymed.fr so we can send you a copy immediately.
+ *
+ *  DISCLAIMER
+ *
+ *  Do not edit or add to this file if you wish to upgrade Macymed to newer
+ *  versions in the future. 
+ *
+ *  @author    Macymed and Contributors <contact@macymed.fr>
+ *  @copyright Since 2007 Macymed and Contributors
+ *  @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
+ */
+/**
+ *  Copyright since 2007 Macymed and Contributors
+ *
+ *  NOTICE OF LICENSE
+ *
+ *  This source file is subject to the Open Software License (OSL 3.0)
+ *  that is bundled with this package in the file LICENSE.md.
+ *  It is also available through the world-wide-web at this URL:
+ *  https://opensource.org/licenses/OSL-3.0
+ *  If you did not receive a copy of the license and are unable to
+ *  obtain it through the world-wide-web, please send an email
+ *  to info@macymed.fr so we can send you a copy immediately.
+ *
+ *  DISCLAIMER
+ *
+ *  Do not edit or add to this file if you wish to upgrade Macymed to newer
+ *  versions in the future.
+ *
+ *  @author    Macymed and Contributors <contact@macymed.fr>
+ *  @copyright Since 2007 Macymed and Contributors
+ *  @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
+ */
 
 namespace Macymed\FilamentPhoneNumber\Helpers;
 
@@ -7,7 +51,7 @@ class CountryHelper
     /**
      * Get all countries with their names in local language, codes and prefixes
      *
-     * @return array
+     * @return array<string, array<string,string>>
      */
     public static function getAllCountries(): array
     {
@@ -126,17 +170,18 @@ class CountryHelper
             'VN' => ['name' => 'Việt Nam', 'code' => 'VN', 'prefix' => '+84'],
             'ZA' => ['name' => 'South Africa', 'code' => 'ZA', 'prefix' => '+27'],
         ];
-        foreach($countries as $code => $country){
+        foreach ($countries as $code => $country) {
             $country['flag'] = CountryHelper::getCountryFlag($code);
             $countries[$code] = $country;
         }
+
         return $countries;
     }
-    
+
     /**
      * Get default masks for phone number formatting
      *
-     * @return array
+     * @return array<string,string>
      */
     public static function getDefaultMasks(): array
     {
@@ -261,28 +306,31 @@ class CountryHelper
      * Get country flag emoji
      *
      * @param string $countryCode
+     *
      * @return string
      */
     public static function getCountryFlag(string $countryCode): string
     {
         $countryCode = strtoupper($countryCode);
         // Convert each letter to the corresponding regional indicator symbol emoji
-        $flag = implode('', array_map(function($char) {
+        $flag = implode('', array_map(function ($char) {
             return mb_chr(ord($char) + 127397);
         }, str_split($countryCode)));
-        
+
         return $flag;
     }
-    
+
     /**
      * Get country name in local language
      *
      * @param string $countryCode
+     *
      * @return string|null
      */
     public static function getCountryName(string $countryCode): ?string
     {
         $countries = self::getAllCountries();
+
         return $countries[$countryCode]['name'] ?? null;
     }
 }

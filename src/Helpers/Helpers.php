@@ -44,33 +44,71 @@
  *  @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
  */
 
-namespace Macymed\FilamentPhoneNumber;
+namespace Macymed\FilamentPhoneNumber\Helpers;
 
-use Illuminate\Support\ServiceProvider;
-
-class FilamentPhoneNumberServiceProvider extends ServiceProvider
+class Helpers
 {
-    public function boot(): void
+    /**
+     * Convertit une valeur de type mixed en une chaîne de caractères.
+     *
+     * Si la valeur est une chaîne, elle est retournée telle quelle.
+     * Si la valeur est null, une chaîne vide est retournée.
+     * Si la valeur est scalaire, elle est castée en string.
+     *
+     * @param mixed $mixed la valeur à convertir
+     *
+     * @return string la représentation sous forme de chaîne
+     */
+    public static function stringFromMixed(mixed $mixed): string
     {
-        // Chargement des vues avec un préfixe unique
-        $this->loadViewsFrom(__DIR__ . '/Resources/views', 'filament-macymed-phone-number');
+        if (is_string($mixed)) {
+            return $mixed;
+        }
 
-        // Publication des vues avec un chemin de destination unique
-        $this->publishes([
-            __DIR__ . '/Resources/views' => resource_path('views/vendor/filament-macymed-phone-number'),
-        ], 'filament-macymed-phone-number-views');
+        if (is_null($mixed)) {
+            return '';
+        }
 
-        // Publication de la configuration
-        $this->publishes([
-            __DIR__ . '/config/filament-macymed-phone-number.php' => config_path('filament-macymed-phone-number.php'),
-        ], 'filament-macymed-phone-number-config');
+        if (is_scalar($mixed)) {
+            return (string) $mixed;
+        }
+
+        if (is_array($mixed)) {
+            $json = json_encode($mixed);
+
+            return $json !== false ? $json : '';
+        }
+
+        if (is_object($mixed)) {
+            $json = json_encode($mixed);
+
+            return $json !== false ? $json : '';
+        }
+
+        return '';
     }
 
-    public function register(): void
+    /**
+     * Convertit une valeur de type mixed en entier.
+     *
+     * Si la valeur est déjà un entier, elle est retournée telle quelle.
+     * Si la valeur est numérique (string ou float), elle est convertie en int.
+     * Sinon, 0 est retourné.
+     *
+     * @param mixed $value la valeur à convertir
+     *
+     * @return int la valeur convertie en entier
+     */
+    public static function intFromMixed(mixed $value): int
     {
-        // Fusion de la configuration
-        $this->mergeConfigFrom(
-            __DIR__ . '/config/filament-macymed-phone-number.php', 'filament-macymed-phone-number'
-        );
+        if (is_int($value)) {
+            return $value;
+        }
+
+        if (is_numeric($value)) {
+            return (int) $value;
+        }
+
+        return 0;
     }
 }

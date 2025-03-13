@@ -43,34 +43,45 @@
  *  @copyright Since 2007 Macymed and Contributors
  *  @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
  */
+return [
+    /*
+    |--------------------------------------------------------------------------
+    | Default country
+    |--------------------------------------------------------------------------
+    |
+    | The default country code to use when no country is specified
+    |
+    */
+    'default_country' => 'FR',
 
-namespace Macymed\FilamentPhoneNumber;
+    /*
+    |--------------------------------------------------------------------------
+    | Show flags
+    |--------------------------------------------------------------------------
+    |
+    | Whether to show country flags by default
+    |
+    */
+    'show_flags' => true,
 
-use Illuminate\Support\ServiceProvider;
+    /*
+    |--------------------------------------------------------------------------
+    | Save as E164
+    |--------------------------------------------------------------------------
+    |
+    | Whether to save phone numbers in E164 format by default
+    |
+    */
+    'save_as_e164' => true,
 
-class FilamentPhoneNumberServiceProvider extends ServiceProvider
-{
-    public function boot(): void
-    {
-        // Chargement des vues avec un préfixe unique
-        $this->loadViewsFrom(__DIR__ . '/Resources/views', 'filament-macymed-phone-number');
-
-        // Publication des vues avec un chemin de destination unique
-        $this->publishes([
-            __DIR__ . '/Resources/views' => resource_path('views/vendor/filament-macymed-phone-number'),
-        ], 'filament-macymed-phone-number-views');
-
-        // Publication de la configuration
-        $this->publishes([
-            __DIR__ . '/config/filament-macymed-phone-number.php' => config_path('filament-macymed-phone-number.php'),
-        ], 'filament-macymed-phone-number-config');
-    }
-
-    public function register(): void
-    {
-        // Fusion de la configuration
-        $this->mergeConfigFrom(
-            __DIR__ . '/config/filament-macymed-phone-number.php', 'filament-macymed-phone-number'
-        );
-    }
-}
+    /*
+    |--------------------------------------------------------------------------
+    | Default format
+    |--------------------------------------------------------------------------
+    |
+    | Default format for displaying phone numbers in columns
+    | Options: 'NATIONAL', 'INTERNATIONAL', 'E164'
+    |
+    */
+    'default_format' => 'NATIONAL',
+];
